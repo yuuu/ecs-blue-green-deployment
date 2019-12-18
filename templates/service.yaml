@@ -124,9 +124,10 @@ Resources:
       LaunchType: FARGATE
       TaskDefinition: !Ref TaskDefinition
       LoadBalancers:
-        - ContainerName: simple-app
+        - ContainerName: rails-app
           ContainerPort: 80
           TargetGroupArn: !Ref TargetGroup
+      HealthCheckGracePeriodSeconds: 360
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED #MENTION DISABLED if in private subnet with NAT gateway
@@ -146,12 +147,19 @@ Resources:
        - FARGATE
       ExecutionRoleArn: !GetAtt TaskIamRole.Arn
       ContainerDefinitions:
-        - Name: simple-app
+        - Name: rails-app
           Image: !Sub ${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${Repository}:${Tag}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/logs/ecs-rails-app-group
+              awslogs-region: !Ref "AWS::Region"
+              awslogs-stream-prefix: rails-app
+          WorkingDirectory: /app
           EntryPoint:
-            - /usr/sbin/apache2
-            - -D
-            - FOREGROUND
+            - /bin/sh
+            - -c
+            - /app/script/entrypoint_production.sh
           Essential: true
           Memory: 512
           PortMappings:
@@ -159,3 +167,11 @@ Resources:
           Environment:
             - Name: Tag
               Value: !Ref Tag
+            - Name: RAILS_ENV
+              Value: production
+            - Name: RAILS_SERVE_STATIC_FILES
+              Value: true
+            - Name: RAILS_LOG_TO_STDOUT
+              Value: true
+            - Name: RAILS_MASTER_KEY
+              Value: xxxxx

@@ -9,7 +9,7 @@ Parameters:
 
   GitHubRepo:
     Type: String
-    Default: ecs-demo-php-simple-app
+    Default: ecs-rails-app
     Description: The repo name of the sample service.
     AllowedPattern: "[A-Za-z0-9_.-]*"
     MaxLength: 50
